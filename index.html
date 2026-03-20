@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI House Price Predictor</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        /* Glass Card */
+        .container {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 350px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        /* Title */
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+
+        /* Slider section */
+        .slider-box {
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        label {
+            font-size: 14px;
+        }
+
+        .value {
+            float: right;
+        }
+
+        /* Sliders */
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        /* Button */
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 12px;
+            background: #00c6ff;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Result */
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Glow animation */
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 10px #00c6ff;
+            }
+
+            50% {
+                box-shadow: 0 0 20px #00c6ff;
+            }
+
+            100% {
+                box-shadow: 0 0 10px #00c6ff;
+            }
+        }
+
+        .glow {
+            animation: glow 1s infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>🏠 AI Price Predictor</h1>
+        <div class="subtitle">Smart estimation powered by ML</div>
+
+        <div class="slider-box">
+            <label>Bedrooms <span id="bed_val" class="value">3</span></label>
+            <input type="range" min="1" max="10" value="3" id="bedrooms" oninput="updateVal('bedrooms','bed_val')">
+        </div>
+
+        <div class="slider-box">
+            <label>Bathrooms <span id="bath_val" class="value">2</span></label>
+            <input type="range" min="1" max="5" value="2" id="bathrooms" oninput="updateVal('bathrooms','bath_val')">
+        </div>
+
+        <div class="slider-box">
+            <label>Living Area (sq ft) <span id="area_val" class="value">1500</span></label>
+            <input type="range" min="500" max="5000" value="1500" id="living_area"
+                oninput="updateVal('living_area','area_val')">
+        </div>
+
+        <div class="slider-box">
+            <label>Floors <span id="floor_val" class="value">2</span></label>
+            <input type="range" min="1" max="4" value="2" id="floors" oninput="updateVal('floors','floor_val')">
+        </div>
+
+        <button onclick="predictPrice()" id="btn">Predict Price</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function updateVal(id, display) {
+            document.getElementById(display).innerText =
+                document.getElementById(id).value;
+        }
+
+        function predictPrice() {
+            const btn = document.getElementById("btn");
+            btn.classList.add("glow");
+
+            const data = {
+                bedrooms: parseInt(document.getElementById("bedrooms").value),
+                bathrooms: parseInt(document.getElementById("bathrooms").value),
+                living_area: parseFloat(document.getElementById("living_area").value),
+                floors: parseInt(document.getElementById("floors").value)
+            };
+
+            document.getElementById("result").innerText = "⏳ Predicting...";
+
+            fetch("http://127.0.0.1:5000/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    btn.classList.remove("glow");
+                    document.getElementById("result").innerText =
+                        "💰 Estimated Price: ₹ " + Math.round(data.predicted_price);
+                })
+                .catch(() => {
+                    btn.classList.remove("glow");
+                    document.getElementById("result").innerText = "❌ Server error";
+                });
+        }
+    </script>
+
+</body>
+
+</html>
